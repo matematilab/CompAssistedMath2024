@@ -5,18 +5,25 @@ By Judith Ludwig, Christian Merten and Florent Schaffhauser,
 Proseminar on computer-assisted mathematics,
 Heidelberg, Summer Semester 2024
 
-In this project, we prove the Schröder-Bernstein Theorem: If two sets `X` and `Y` have injections `X → Y` and `Y → X`, there exists a bijection `X → Y`.
+In this project, we prove the Schröder-Bernstein Theorem:
+If two sets `X` and `Y` have injections `X → Y` and `Y → X`,
+there exists a bijection `X → Y`.
 
-Since Lean is based on type theory (as opposed to set theory in the sense of ZFC), we show the analogous statement where `X` and `Y` are types.
+Since Lean is based on type theory (as opposed to set theory in the sense of ZFC),
+we show the analogous statement where `X` and `Y` are types.
 
-The idea and the setup is taken from the book Mathematics in Lean by Jeremy Avigad and Patrick Massot (https://leanprover-community.github.io/mathematics_in_lean/C04_Sets_and_Functions.html). You can find more explanations and even pictures at the previous link.
+The idea and the setup is taken from the book Mathematics in Lean
+by Jeremy Avigad and Patrick Massot
+(https://leanprover-community.github.io/mathematics_in_lean/C04_Sets_and_Functions.html).
+You can find more explanations and even pictures at the previous link.
 -/
 
 import Mathlib.Data.Set.Lattice
 import Mathlib.Data.Set.Function
 
 /-
-We want to do proofs by contradition and use the axiom of choice. To make the code lighter we open the classical namespace.
+We want to do proofs by contradition and use the axiom of choice.
+To make the code lighter we open the classical namespace.
 -/
 
 open Classical
@@ -26,7 +33,8 @@ variable {α β : Type}
 section WarmUp
 
 /-
-To get used to working with sets and functions in Lean, here are some warm-up exercises.
+To get used to working with sets and functions in Lean,
+here are some warm-up exercises.
 -/
 
 variable (f : α → β) (s t : Set α)
@@ -44,27 +52,45 @@ example : s \ (t ∪ u) ⊆ (s \ t) \ u := by
   · exact ha2.right
 
 /-
-Given s of type Set α, the image of s under f is denoted by f '' s. For the preimage we use f ⁻¹' where the exponent -1 can be typed by `\-` or `\-1`.
+Given s of type Set α, the image of s under f is denoted by f '' s.
+For the preimage we use f ⁻¹' where the exponent -1 can be typed by `\-` or `\-1`.
 -/
 
 example (hf : Function.Injective f) : f ⁻¹' (f '' s) ⊆ s := by
   intro a ha
   simp at ha
   obtain ⟨x, hxins, hfx⟩ := ha
-  -- The library search tactic `exact?` can be used not only to search lemma names in the library, but also how to apply local hypothesis to simple goals.
-  have hxa : x = a := by exact?
+  -- The library search tactic `exact?` can be used not only to search lemma names in the library,
+  -- but also how to apply local hypothesis to simple goals.
+  have hxa : x = a := by exact hf hfx
   -- See `#help tactic subst` if you want to learn about a tactic.
   subst hxa
   exact hxins
 
 example : f '' (f ⁻¹' u) ⊆ u := by
-  sorry
+  intro b hb
+  simp at hb
+  obtain ⟨x, hfxinu, hfx⟩ := hb
+  subst hfx
+  exact hfxinu
 
 example (h : Function.Surjective f) : u ⊆ f '' (f ⁻¹' u) := by
-  sorry
+  intro b hb
+  simp
+  obtain ⟨a, ha⟩ := h b
+  use a
+  subst ha
+  constructor
+  · exact hb
+  · rfl
 
 example (h : s ⊆ t) : f '' s ⊆ f '' t := by
-  sorry
+  intro b hb
+  simp at hb
+  simp
+  obtain ⟨x, hxins, hxis⟩ := hb
+  apply h at hxins
+  use x
 
 end WarmUp
 
@@ -77,7 +103,9 @@ We assume `Nonempty β` first. If `β` is empty, the proof is easy (see `schroed
 variable [Nonempty β] (f : α → β) (g : β → α)
 
 /-
-The natural numbers `ℕ` are defined inductively. Hence to define a function from `ℕ`, we may define it for `0` (base case) and for every natural number of the form `n + 1`, where we may use the definition for `n` (induction step).
+The natural numbers `ℕ` are defined inductively.
+Hence to define a function from `ℕ`, we may define it for `0` (base case)
+and for every natural number of the form `n + 1`, where we may use the definition for `n` (induction step).
 
 An example is the following function, which is an auxiliary function to define `sbSet`.
 -/
@@ -96,13 +124,15 @@ def sbSet : Set α :=
 /-
 To define our candidate bijection, we need `Function.invFun `g`.
 
-`Function.invFun g` is a function `α → β` that chooses (an arbitrary) pre-image of `x : α` under `g`, whenever such a pre-image exists and any element of `β` if it does not (here we use that `β` is non-empty).
+`Function.invFun g` is a function `α → β` that chooses (an arbitrary) pre-image of `x : α` under `g`,
+whenever such a pre-image exists and any element of `β` if it does not (here we use that `β` is non-empty).
 
 (This uses the axiom of choice! Why?)
 -/
 
 #check Function.invFun
 
+#check Function.invFun_eq
 /-
 Our candidate for the bijection `α → β`.
 -/
@@ -111,7 +141,8 @@ noncomputable def sbFun (x : α) : β :=
   if x ∈ sbSet f g then f x else Function.invFun g x
 
 /-
-In general, `Function.invFun` is not a right-inverse of `g` (because `g` is in general not surjective). But outside of our auxiliary set `sbSet f g`, it is a right-inverse, as the next theorem shows.
+In general, `Function.invFun` is not a right-inverse of `g` (because `g` is in general not surjective).
+But outside of our auxiliary set `sbSet f g`, it is a right-inverse, as the next theorem shows.
 -/
 
 theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) = x := by
@@ -120,17 +151,24 @@ theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) =
     rw [sbSet, Set.mem_iUnion]
     use 0
     rw [sbAux, Set.mem_diff]
-    sorry
+    constructor
+    · simp
+    · exact hx
   have : ∃ y, g y = x := by
-    sorry
-  sorry
-
+    simp at this
+    exact this
+  obtain ⟨y, hy⟩ := this
+  apply Function.invFun_eq
+  use y
 /-
-If a proof is symmetric with respect to two variables, in informal maths we write "without loss of generality ...". A similar thing can be done in Lean using the `wlog` tactic.
+If a proof is symmetric with respect to two variables, in informal maths we write
+"without loss of generality ...".
+A similar thing can be done in Lean using the `wlog` tactic.
 -/
 
 #help tactic wlog
 
+#check sb_right_inv
 /-
 Hint: you need to use `sb_right_inv` in the proof.
 -/
@@ -151,18 +189,26 @@ theorem sb_injective (hf : Function.Injective f) : Function.Injective (sbFun f g
       rw [if_pos x₁A, if_neg x₂nA] at hxeq
       rw [A_def, sbSet, Set.mem_iUnion] at x₁A
       have x₂eq : x₂ = g (f x₁) := by
-        sorry
+        rw [hxeq]
+        rw [A_def] at x₂nA
+        exact (sb_right_inv f g x₂nA).symm
       rcases x₁A with ⟨n, hn⟩
       rw [A_def, sbSet, Set.mem_iUnion]
       use n + 1
       simp [sbAux]
       exact ⟨x₁, hn, x₂eq.symm⟩
-    sorry
+    rw[if_pos x₁A, if_pos x₂A] at hxeq
+    apply hf at hxeq
+    exact hxeq
   · simp at xA
-    sorry
+    rw[if_neg xA.left, if_neg xA.right] at hxeq
+    rw[(sb_right_inv f g xA.left).symm, (sb_right_inv f g xA.right).symm, hxeq]
 
 /-
-The definition `Function.Injective` is in the `Function` namespace, as indicated by the prefix `Function.`. If we want to save some characters, we can drop the `Function.` by opening the `Function` namespace:
+The definition `Function.Injective` is in the `Function` namespace,
+as indicated by the prefix `Function.`.
+If we want to save some characters, we can drop the `Function.`
+by opening the `Function` namespace:
 -/
 
 open Function

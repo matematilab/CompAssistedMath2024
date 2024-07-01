@@ -22,7 +22,11 @@ In this file, we explain the `calc` environment and introduce the following tact
 
 ## The `calc` environment
 
-For some proofs in mathematics, the best strategy is to rewrite an expression multiple times and at each step justify the rewriting. We often do this automatically without giving explicit arguments. In Lean, we have to provide them. As you learned in the NNG, you can use the rewrite tactic `rw`.
+For some proofs in mathematics, the best strategy is to rewrite an expression multiple times
+and at each step justify the rewriting.
+We often do this automatically without giving explicit arguments.
+In Lean, we have to provide them.
+As you learned in the NNG, you can use the rewrite tactic `rw`.
 -/
 
 example (a b : ℝ) : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b := by
@@ -31,20 +35,26 @@ example (a b : ℝ) : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b := by
   rw [mul_comm b a, two_mul]
 
 /-
-Using the Lean Infoview one can see the progress in the goal and follow the above proof. From the code alone, this is really hard. For such a situation Lean has the so-called `calc` environment. The syntax is a bit tricky.
+Using the Lean Infoview one can see the progress in the goal and follow the above proof.
+From the code alone, this is really hard.
+For such a situation Lean has the so-called `calc` environment.
+The syntax is a bit tricky.
 -/
 
 example (a b : ℝ) : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
   calc
-    (a + b) * (a + b) = a * a + b * a + (a * b + b * b) := by sorry
-    _ = a * a + (b * a + a * b) + b * b := by sorry
-    _ = a * a + 2 * (a * b) + b * b := by sorry
+    (a + b) * (a + b) = a * a + b * a + (a * b + b * b) := by rw [mul_add, add_mul, add_mul]
+    _ = a * a + (b * a + a * b) + b * b := by rw [← add_assoc, add_assoc (a * a)]
+    _ = a * a + 2 * (a * b) + b * b := by rw [mul_comm b a, two_mul]
 
 /-
 Try proving the following using a calc proof.
 -/
 
-example (a b c d : ℝ): (a + b) * (c + d) = a * c + a * d + b * c + b * d := by sorry
+example (a b c d : ℝ): (a + b) * (c + d) = a * c + a * d + b * c + b * d := by
+  calc
+    (a + b) * (c + d) = a * (c + d) + b * (c + d) := by rw[add_mul]
+    _ = a * c + a * d + b * c + b * d := by rw[mul_add, mul_add, ← add_assoc]
 
 /-
 Here is an example from group theory. Let us see how to handle groups in Lean.
@@ -53,17 +63,22 @@ Here is an example from group theory. Let us see how to handle groups in Lean.
 variable {G : Type} [Group G]
 
 /-
-In mathematics we learn that a group is a set with an associative multiplication, an identity and inverses. So in Lean a group `G` is a term of type `Type` plus the extra structure.
+In mathematics we learn that a group is a set with an associative multiplication,
+an identity and inverses. So in Lean a group `G` is a term of type `Type`
+plus the extra structure.
 
-In fact, Lean builds Groups on Monoids. If you hover over `Group`, you'll see the following definition:
+In fact, Lean builds Groups on Monoids. If you hover over `Group`,
+you'll see the following definition:
 "A Group is a Monoid with an operation `⁻¹` satisfying `g⁻¹ * g = 1`."
 
 Note that we only require `g` to have a left inverse.
 The theorem `mul_left_inv` says that for any element `g` in the group, `g⁻¹ * g = 1`.
 
-Let us use a calc environment to show from the group axioms, that a left inverse in a group is also a right inverse.
+Let us use a calc environment to show from the group axioms,
+that a left inverse in a group is also a right inverse.
 
-See if you can solve this using only the three theorems `mul_assoc`, `one_mul`and `mul_left_inv`.
+See if you can solve this using only the three theorems `mul_assoc`,
+`one_mul`and `mul_left_inv`.
 -/
 
 #check mul_assoc
@@ -200,7 +215,7 @@ In Lean, we can use the `congr` tactic (short for *congruence*) to reduce the go
 -/
 
 example {X Y : Type} {f : X → Y} {x₁ x₂ : X} (h : x₁ = x₂) : f x₁ = f x₂ := by
-  sorry
+  congr
 
 /-
 In the following example, the `congr` tactic is capable of reducing the equality `g (f x) = g (f x')` to `x = x'`. Note that there is no term `h : x = x'` in our local context, so we cannot close the goal after that.
