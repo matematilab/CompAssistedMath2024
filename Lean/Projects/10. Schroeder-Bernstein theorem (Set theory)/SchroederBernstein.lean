@@ -133,6 +133,7 @@ whenever such a pre-image exists and any element of `β` if it does not (here we
 #check Function.invFun
 
 #check Function.invFun_eq
+
 /-
 Our candidate for the bijection `α → β`.
 -/
@@ -169,6 +170,7 @@ A similar thing can be done in Lean using the `wlog` tactic.
 #help tactic wlog
 
 #check sb_right_inv
+#check Function.leftInverse_invFun
 /-
 Hint: you need to use `sb_right_inv` in the proof.
 -/
@@ -231,8 +233,12 @@ theorem sb_surjective (hf : Injective f) (hg : Injective g) : Function.Surjectiv
       exact ⟨n, xmem⟩
     simp only [h_def, sbFun, if_pos this]
     exact hg hx
-  · sorry
-
+  · simp [A_def] at gyA
+    use g y
+    simp [h_def, sbFun]
+    rw [if_neg gyA]
+    rw[leftInverse_invFun]
+    exact hg
 end SchroederBernsteinConstruction
 
 open Function
@@ -246,7 +252,9 @@ theorem schroeder_bernstein_of_nonempty [Nonempty β] {f : α → β} {g : β �
   ⟨sbFun f g, sb_injective f g hf, sb_surjective f g hf hg⟩
 
 /-
-The Schröder-Bernstein Theorem: If we have an injection from `α` to `β` and an injection from `β` to `α`, there exists a bijection from `α` to `β`.
+The Schröder-Bernstein Theorem:
+If we have an injection from `α` to `β` and an injection from `β` to `α`,
+there exists a bijection from `α` to `β`.
 -/
 
 theorem schroeder_bernstein {f : α → β} {g : β → α} (hf : Injective f)
@@ -255,4 +263,9 @@ theorem schroeder_bernstein {f : α → β} {g : β → α} (hf : Injective f)
   · exact schroeder_bernstein_of_nonempty hf hg
   · simp at h
     use f
-    sorry
+    constructor
+    · exact hf
+    · intro b
+      use g b
+
+      sorry
