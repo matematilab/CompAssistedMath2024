@@ -161,6 +161,7 @@ theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) =
   obtain ⟨y, hy⟩ := this
   apply Function.invFun_eq
   use y
+
 /-
 If a proof is symmetric with respect to two variables, in informal maths we write
 "without loss of generality ...".
@@ -169,8 +170,6 @@ A similar thing can be done in Lean using the `wlog` tactic.
 
 #help tactic wlog
 
-#check sb_right_inv
-#check Function.leftInverse_invFun
 /-
 Hint: you need to use `sb_right_inv` in the proof.
 -/
@@ -252,6 +251,22 @@ theorem schroeder_bernstein_of_nonempty [Nonempty β] {f : α → β} {g : β �
   ⟨sbFun f g, sb_injective f g hf, sb_surjective f g hf hg⟩
 
 /-
+In the proof of the Schröder Bernstein theorem for empty β we want to use that there exists a bijection
+from an empty type to another empty type.
+-/
+
+theorem empty_to_empty_bijection [h1 : IsEmpty α] [h2 : IsEmpty β] :
+    ∃ h : α → β, Bijective h := by
+   apply Equiv.equivEmpty at h1
+   apply Equiv.equivEmpty at h2
+   apply Equiv.symm at h2
+   apply Equiv.trans h1 at h2
+   obtain ⟨h, h_inv, l_inv, r_inv⟩ := h2
+   use h
+   rw [bijective_iff_has_inverse]
+   use h_inv
+
+/-
 The Schröder-Bernstein Theorem:
 If we have an injection from `α` to `β` and an injection from `β` to `α`,
 there exists a bijection from `α` to `β`.
@@ -261,18 +276,14 @@ theorem schroeder_bernstein {f : α → β} {g : β → α} (hf : Injective f)
     (hg : Injective g) : ∃ h : α → β, Bijective h := by
   by_cases h : Nonempty β
   · exact schroeder_bernstein_of_nonempty hf hg
-  · simp at h
-    use f
-    constructor
-    · exact hf
-    · intro b
-      use g b
-
-      sorry
-
-
-
-
+  · have : IsEmpty α := by
+      by_contra h1
+      simp at h1
+      obtain ⟨a⟩ := h1
+      apply h
+      use f a
+    simp at h
+    exact empty_to_empty_bijection
 
 /-
 As an application of the Schröder-Bernstein theorem we can show that there exists
@@ -281,9 +292,9 @@ We define the functions fnz:ℕ → ℤ and fzn: ℤ → ℕ
 and prove that they are injections. We obtain the bijection by Schröder Bernstein
 -/
 
-
 def fnz (n : Nat) : Int :=
   if 2 ∣ n then ↑(n / 2) else -↑((n + 1) / 2)
 
 def fzn (z : Int) : Nat :=
-  if 0 ≤ z then 2 * Int.toNat
+  if 0 ≤ z then 2 * Int.toNat z
+  else 2 * Int.toNat (-z) -1
