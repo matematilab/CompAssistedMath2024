@@ -269,3 +269,21 @@ theorem schroeder_bernstein {f : α → β} {g : β → α} (hf : Injective f)
       use g b
 
       sorry
+
+
+
+
+
+/-
+As an application of the Schröder-Bernstein theorem we can show that there exists
+a bijection from ℕ to ℤ.
+We define the functions fnz:ℕ → ℤ and fzn: ℤ → ℕ
+and prove that they are injections. We obtain the bijection by Schröder Bernstein
+-/
+
+
+def fnz (n : Nat) : Int :=
+  if 2 ∣ n then ↑(n / 2) else -↑((n + 1) / 2)
+
+def fzn (z : Int) : Nat :=
+  if 0 ≤ z then 2 * Int.toNat
