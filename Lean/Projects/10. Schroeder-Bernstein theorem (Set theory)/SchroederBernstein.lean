@@ -85,7 +85,7 @@ But outside of our auxiliary set `sbSet f g`, it is a right-inverse, as the next
 
 theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) = x := by
 
--- We show that any `x`in the complement of `sbSet f g` is in fact in the image of `g`.
+/- We show that any `x`in the complement of `sbSet f g` is in fact in the image of `g`. -/
   have : x ∈ g '' Set.univ := by
     contrapose! hx
     rw [sbSet, Set.mem_iUnion]
@@ -95,7 +95,7 @@ theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) =
     · simp
     · exact hx
 
--- Therefore we have a preimage `y` for any such `x`.
+/- Therefore we have a preimage `y` for any such `x`. -/
   have : ∃ y, g y = x := by
     simp at this
     exact this
@@ -117,21 +117,20 @@ It is similar to writing "without loss of generality" in informal maths.
 
 theorem sb_injective (hf : Function.Injective f) : Function.Injective (sbFun f g) := by
 
--- Remember that we'd like to call `sbSet f g` `S`and `sbFun f g` `h`.
+/- Remember that we'd like to call `sbSet f g` `S`and `sbFun f g` `h`. -/
   set S := sbSet f g with S_def
   set h := sbFun f g with h_def
 
   intro x₁ x₂ (hxeq : h x₁ = h x₂)
   simp only [h_def, sbFun, ← S_def] at hxeq
 
--- Remember that we defined h on a case by case basis, so it makes sense to use the `by_cases` tactic.
+/- Remember that we defined h on a case by case basis. -/
   by_cases xS : x₁ ∈ S ∨ x₂ ∈ S
 
--- `x₁ ∈ S ∨ x₂ ∈ S`
--- In the following we'd like to assume `x₁ ∈ S`.
+/- `x₁ ∈ S ∨ x₂ ∈ S`. In the following we'd like to assume `x₁ ∈ S`. -/
   · wlog x₁S : x₁ ∈ S generalizing x₁ x₂ hxeq xS
 
--- This is the proof of the `wlog` statement.
+/- This is the proof of the `wlog` statement. -/
     · symm
       apply this hxeq.symm xS.symm (xS.resolve_left x₁S)
 
@@ -155,7 +154,7 @@ theorem sb_injective (hf : Function.Injective f) : Function.Injective (sbFun f g
       apply hf at hxeq
       exact hxeq
 
--- `¬ x₁ ∈ S ∨ x₂ ∈ S`
+/- `¬ x₁ ∈ S ∨ x₂ ∈ S` -/
   · simp at xS
     rw[if_neg xS.left, if_neg xS.right] at hxeq
     rw[(sb_right_inv f g xS.left).symm, (sb_right_inv f g xS.right).symm, hxeq]
@@ -171,14 +170,14 @@ open Function
 
 theorem sb_surjective (hg : Injective g) : Function.Surjective (sbFun f g) := by
 
--- As in the above proof, we rename `sbSet` and `sbFun`.
+/- As in the above proof, we rename `sbSet` and `sbFun`. -/
   set S := sbSet f g with S_def
   set h := sbFun f g with h_def
 
   intro y
   by_cases gyS : g y ∈ S
 
--- `g y ∈ S`
+/- `g y ∈ S` -/
   · rw [S_def, sbSet, Set.mem_iUnion] at gyS
     rcases gyS with ⟨n, hn⟩
     rcases n with _ | n
@@ -192,7 +191,7 @@ theorem sb_surjective (hg : Injective g) : Function.Surjective (sbFun f g) := by
     simp only [h_def, sbFun, if_pos this]
     exact hg hx
 
--- `g y ∉ S`
+/- `g y ∉ S` -/
   · simp [S_def] at gyS
     use g y
     simp [h_def, sbFun]
@@ -219,14 +218,14 @@ from an empty type to another empty type.
 
 theorem empty_to_empty_bijection [h1 : IsEmpty α] [h2 : IsEmpty β] :
     ∃ h : α → β, Bijective h := by
-   apply Equiv.equivEmpty at h1
-   apply Equiv.equivEmpty at h2
-   apply Equiv.symm at h2
-   apply Equiv.trans h1 at h2
-   obtain ⟨h, h_inv, l_inv, r_inv⟩ := h2
-   use h
-   rw [bijective_iff_has_inverse]
-   use h_inv
+  apply Equiv.equivEmpty at h1
+  apply Equiv.equivEmpty at h2
+  apply Equiv.symm at h2
+  apply Equiv.trans h1 at h2
+  obtain ⟨h, h_inv, l_inv, r_inv⟩ := h2
+  use h
+  rw [bijective_iff_has_inverse]
+  use h_inv
 
 /-
 The Schröder-Bernstein Theorem:
@@ -255,12 +254,12 @@ As an application of the Schröder-Bernstein theorem we can show that there exis
 a bijection from ℕ to ℤ.
 -/
 
--- We define fnz : ℕ → ℤ as the inclusion of ℕ  in ℤ.
+/- We define fnz : ℕ → ℤ as the inclusion of ℕ  in ℤ. -/
 def fnz (n : Nat) : Int :=
   Int.ofNat n
 
--- We define fzn : ℤ → ℕ as the function that sends nonnegative integers to the even numbers
--- and negative integers to the odd numbers.
+/- We define fzn : ℤ → ℕ as the function that sends nonnegative integers to the even numbers
+and negative integers to the odd numbers. -/
 def fzn (z : Int) : Nat :=
   if 0 ≤ z then 2 * Int.toNat z
   else 2 * Int.toNat (-z - 1) + 1
@@ -298,14 +297,14 @@ theorem fzn_inj : Injective fzn := by
 
   · by_cases hb : 0 ≤ b
 
--- `0 ≤ a` and `0 ≤ b`
+/- `0 ≤ a` and `0 ≤ b` -/
     · rw [if_pos ha, if_pos hb, Nat.mul_ne_mul_right h2]
       rw[← Int.toNat_of_nonneg ha, ← Int.toNat_of_nonneg hb] at h
       contrapose! h
       rw[Int.ofNat_inj]
       exact h
 
--- `0 ≤ a` and `b < 0`
+/- `0 ≤ a` and `b < 0` -/
     · rw[if_pos ha, if_neg hb]
       have h_even : Even (2 * a.toNat) := by exact even_two_mul a.toNat
       have h_odd : Odd (2 * (-b - 1).toNat + 1) := by
@@ -317,8 +316,7 @@ theorem fzn_inj : Injective fzn := by
 
   · by_cases hb : 0 ≤ b
 
--- `a < 0` and `0 ≤ b`
--- Note that this is the same proof as in the above case.
+/- `a < 0` and `0 ≤ b`. Note that this is the same proof as in the above case. -/
     · rw[if_neg ha, if_pos hb]
       have h_even : Even (2 * b.toNat) := by exact even_two_mul b.toNat
       have h_odd : Odd (2 * (-a - 1).toNat + 1) := by
@@ -328,7 +326,7 @@ theorem fzn_inj : Injective fzn := by
         exact Even.odd_add h_even h_odd
       exact Nat.ne_of_odd_add h_sum_odd
 
--- `a < 0` and `b < 0`
+/- `a < 0` and `b < 0` -/
     · rw[if_neg ha, if_neg hb]
       contrapose! h
       rw[← Nat.succ_eq_add_one, ← Nat.succ_eq_add_one, Nat.succ_inj', Nat.mul_right_inj h2] at h
@@ -352,6 +350,6 @@ theorem fzn_inj : Injective fzn := by
         exact hb
 
 
--- We obtain a bijection from ℕ to ℤ by applying the Schröder Berstein theorem.
+/- We obtain a bijection from ℕ to ℤ by applying the Schröder Berstein theorem. -/
 example : ∃ h : ℕ → ℤ, Bijective h := by
   exact schroeder_bernstein fnz_inj fzn_inj
