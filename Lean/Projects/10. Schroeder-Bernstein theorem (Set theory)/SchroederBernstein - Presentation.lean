@@ -1,87 +1,55 @@
 /-
 # The Schröder-Bernstein Theorem
 
-Project by Marieke and Eren,
-Stub file by Judith Ludwig, Christian Merten and Florent Schaffhauser,
-Proseminar on computer-assisted mathematics,
-Heidelberg, Summer Semester 2024
-
-In this project, we prove the Schröder-Bernstein Theorem:
-If two sets `X` and `Y` have injections `X → Y` and `Y → X`,
-there exists a bijection `X → Y`.
-You can find the set theoretic proof in our slides.
-
-Since Lean is based on type theory (as opposed to set theory in the sense of ZFC),
-we show the analogous statement where `X` and `Y` are types.
-
-The idea and the setup is taken from the book Mathematics in Lean
-by Jeremy Avigad and Patrick Massot (last accessed: 14.07.2024)
-(https://leanprover-community.github.io/mathematics_in_lean/C04_Sets_and_Functions.html).
-The example at the very end takes inspiration from the book How To Prove It With Lean
-by Daniel Velleman (last accessed: 14.07.2024)
-(https://djvelleman.github.io/HTPIwL/Chap8.html).
+Project by Marieke and Eren
 -/
 
 import Mathlib.Data.Set.Lattice
 import Mathlib.Data.Set.Function
 import Mathlib.Tactic.Ring
 
-/-
-We want to do proofs by contradition and use the axiom of choice.
-To make the code lighter we open the classical namespace.
--/
 
 open Classical
 
 variable {α β : Type}
 
+
 section SchroederBernsteinConstruction
 
-/-
-We assume `Nonempty β` first. If `β` is empty, see `schroeder_bernstein` below.
--/
+
+
+-- Assume `Nonempty β` first.
 
 variable [Nonempty β] (f : α → β) (g : β → α)
 
-/-
-We define the following auxiliary function to help us define `sbSet f g`.
-`sbAux f g n` corresponds to `S_n` from the maths part.
--/
+
+
+-- Define auxiliary function `sbAux`.
+-- `sbAux f g n` corresponds to `S_n` from the maths part.
 
 def sbAux : ℕ → Set α
   | 0 => Set.univ \ g '' Set.univ
   | n + 1 => g '' (f '' sbAux n)
 
-/-
-We define `sbSet f g` as the union of `sbAux f g n` for all `n : ℕ`.
-`sbSet f g` corresponds to `S` from the maths part.
--/
+
+
+-- Define the union of `sbAux f g n` for all `n : ℕ`.
+-- `sbSet f g` corresponds to `S` from the maths part.
 
 def sbSet : Set α :=
   ⋃ n, sbAux f g n
 
 
-/-
-We define our candidate for the bijection `α → β` : `sbFun`.
-In the maths part we call this function `h`.
 
-To do this, we need `Function.invFun g`.
-
-`Function.invFun g` is a function `α → β` that chooses (an arbitrary) pre-image of `x : α` under `g`,
-whenever such a pre-image exists and any element of `β` if it does not (here we use that `β` is non-empty
-and the axiom of choice).
--/
-
-#check Function.invFun
-
+-- Define our candidate for the bijection `α → β`.
+-- `sbFun` corresponds to `h` from the maths part.
 
 noncomputable def sbFun (x : α) : β :=
   if x ∈ sbSet f g then f x else Function.invFun g x
 
-/-
-In general, `Function.invFun` is not a right-inverse of `g` (because `g` is in general not surjective).
-But outside of our auxiliary set `sbSet f g`, it is a right-inverse, as the next theorem shows.
--/
+
+
+-- Show that `Function.invFun g` is a right-inverse of `g` on the complement of `sbSet f g`.
 
 theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) = x := by
 
@@ -104,16 +72,8 @@ theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (Function.invFun g x) =
   apply Function.invFun_eq
   use y
 
-/-
-Remember that `sbFun`is our candidate for the bijection.
-Therefore we want to show that it is both injective and surjective.
 
-In the proof of surjectivity we'd like to use the `wlog` tactic.
-It is similar to writing "without loss of generality" in informal maths.
--/
-
-#help tactic wlog
-
+-- Show that `sbFun` is injective.
 
 theorem sb_injective (hf : Function.Injective f) : Function.Injective (sbFun f g) := by
 
@@ -160,12 +120,6 @@ theorem sb_injective (hf : Function.Injective f) : Function.Injective (sbFun f g
     rw[if_neg xS.left, if_neg xS.right] at hxeq
     rw[(sb_right_inv f g xS.left).symm, (sb_right_inv f g xS.right).symm, hxeq]
 
-/-
-The definition `Function.Injective` is in the `Function` namespace,
-as indicated by the prefix `Function.`.
-If we want to save some characters, we can drop the `Function.`
-by opening the `Function` namespace:
--/
 
 open Function
 
@@ -202,20 +156,18 @@ theorem sb_surjective (hg : Injective g) : Function.Surjective (sbFun f g) := by
 
 end SchroederBernsteinConstruction
 
+
 open Function
 
-/-
-The Schröder-Bernstein Theorem for non-empty `β`.
--/
+-- Prove the Schröder-Bernstein Theorem for non-empty `β`.
 
 theorem schroeder_bernstein_of_nonempty [Nonempty β] {f : α → β} {g : β → α} (hf : Injective f)
     (hg : Injective g) : ∃ h : α → β, Bijective h :=
   ⟨sbFun f g, sb_injective f g hf, sb_surjective f g hg⟩
 
-/-
-In the proof of the Schröder Bernstein theorem for empty β we want to use that there exists a bijection
-from an empty type to another empty type.
--/
+
+
+-- Show that there exists a bijection from an empty type to another empty type.
 
 theorem empty_to_empty_bijection [h1 : IsEmpty α] [h2 : IsEmpty β] :
     ∃ h : α → β, Bijective h := by
@@ -228,16 +180,19 @@ theorem empty_to_empty_bijection [h1 : IsEmpty α] [h2 : IsEmpty β] :
    rw [bijective_iff_has_inverse]
    use h_inv
 
-/-
-The Schröder-Bernstein Theorem:
-If we have an injection from `α` to `β` and an injection from `β` to `α`,
-there exists a bijection from `α` to `β`.
--/
+
+
+--Prove the Schröder-Berstein Theorem.
 
 theorem schroeder_bernstein {f : α → β} {g : β → α} (hf : Injective f)
     (hg : Injective g) : ∃ h : α → β, Bijective h := by
+
   by_cases h : Nonempty β
+
+-- `Nonempty β`
   · exact schroeder_bernstein_of_nonempty hf hg
+
+-- `Empty β`
   · have : IsEmpty α := by
       by_contra h1
       simp at h1
@@ -251,24 +206,27 @@ theorem schroeder_bernstein {f : α → β} {g : β → α} (hf : Injective f)
 
 /-
 # Example
-As an application of the Schröder-Bernstein theorem we can show that there exists
-a bijection from ℕ to ℤ.
+There is a bijection from `ℕ` to `ℤ.
 -/
 
--- We define fnz : ℕ → ℤ as the inclusion of ℕ  in ℤ.
+
+-- Define `fnz : ℕ → ℤ` as the inclusion of `ℕ` into `ℤ`.
+
 def fnz (n : Nat) : Int :=
   Int.ofNat n
 
--- We define fzn : ℤ → ℕ as the function that sends nonnegative integers to the even numbers
+
+
+-- Define fzn : ℤ → ℕ as the function that sends nonnegative integers to the even numbers
 -- and negative integers to the odd numbers.
+
 def fzn (z : Int) : Nat :=
   if 0 ≤ z then 2 * Int.toNat z
   else 2 * Int.toNat (-z - 1) + 1
 
 
-/-
-Schröder-Bernstein requires that the functions are injective, we prove this in the following theorems.
--/
+
+-- Show that `fnz`and `fzn` are injective.
 
 theorem fnz_inj : Injective fnz := by
   intro x y
@@ -276,12 +234,6 @@ theorem fnz_inj : Injective fnz := by
   exact Int.ofNat.inj
 
 
-/-
-We have copied the following theorem from mathlib (last accessed: 20.07.2024) as it did not appear otherwise,
-as the `check` shows.
-(https://github.com/leanprover/lean4/blob/702c31b8071269f0052fd1e0fb3891a079a655bd/src/Init/Data/Nat/Basic.lean#L890-L891)
--/
-#check sub_one_cancel
 
 theorem sub_one_cancel : ∀ {a b : Nat}, 0 < a → 0 < b → a - 1 = b - 1 → a = b
   | _+1, _+1, _, _ => congrArg _
@@ -319,14 +271,7 @@ theorem fzn_inj : Injective fzn := by
 
 -- `a < 0` and `0 ≤ b`
 -- Note that this is the same proof as in the above case.
-    · rw[if_neg ha, if_pos hb]
-      have h_even : Even (2 * b.toNat) := by exact even_two_mul b.toNat
-      have h_odd : Odd (2 * (-a - 1).toNat + 1) := by
-        rw[Nat.odd_iff_not_even]
-        exact Nat.not_even_two_mul_add_one (-a - 1).toNat
-      have h_sum_odd : Odd ((2 * (-a - 1).toNat + 1) + (2 * b.toNat)) := by
-        exact Even.odd_add h_even h_odd
-      exact Nat.ne_of_odd_add h_sum_odd
+    · sorry
 
 -- `a < 0` and `b < 0`
     · rw[if_neg ha, if_neg hb]
@@ -352,6 +297,8 @@ theorem fzn_inj : Injective fzn := by
         exact hb
 
 
--- We obtain a bijection from ℕ to ℤ by applying the Schröder Berstein theorem.
+
+-- Obtain a bijection by Schröder-Berstein theorem.
+
 example : ∃ h : ℕ → ℤ, Bijective h := by
   exact schroeder_bernstein fnz_inj fzn_inj

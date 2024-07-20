@@ -128,18 +128,21 @@ example (G H : Type) [Group G] [Group H] (φ ψ : G →* H)
 /-
 ## The `ring` tactic
 
-The `ring` tactic proves algebraic identities in commutative rings that follow purely from the ring axioms. The commutative ring can be an abstract commutative ring `R` or a concrete instance like the reals `ℝ`. The `ring` tactic will not take into account local assumptions.
+The `ring` tactic proves algebraic identities in commutative rings that follow purely from the ring axioms.
+The commutative ring can be an abstract commutative ring `R` or a concrete instance like the reals `ℝ`.
+The `ring` tactic will not take into account local assumptions.
 -/
 
 example (a b : ℝ) : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b := by
-  sorry
+  ring
+
 
 /-
 It even works on some results in semiring such as `ℕ`. Try replacing `ℝ` by `ℕ` in the above example.
 -/
 
 example (a b : ℝ) : (a + b) * (a - b) = a * a - b * b := by
-  sorry
+  ring
 
 /-
 ## The `use` tactic
